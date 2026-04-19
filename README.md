@@ -18,7 +18,7 @@ Podman (rootless) + Distrobox + Arch dev‑container + VS Code (Microsoft build)
 
 🧠 Архитектура
 
-`
+```
 BTRFS
 │
 ├── /var/lib/libvirt                    ← VM (KVM)
@@ -29,7 +29,7 @@ BTRFS
     └── .local/share
         ├── containers                  ← rootless podman
         └── distrobox/dev-home          ← HOME контейнера
-`
+```
 
 ---
 
@@ -37,17 +37,17 @@ BTRFS
 
 Создание:
 
-`bash
+```bash
 sudo btrfs subvolume create /home/engineer/.local/share/containers
 sudo btrfs subvolume create /home/engineer/.local/share/distrobox/dev-home
 sudo btrfs subvolume create /home/engineer/dev-projects
-`
+```
 
 Проверка:
 
-`bash
+```bash
 sudo btrfs subvolume list /
-`
+```
 
 ---
 
@@ -55,15 +55,15 @@ sudo btrfs subvolume list /
 
 Проверка storage:
 
-`bash
+```bash
 podman info --format '{{.Store.GraphRoot}}'
-`
+```
 
 Ожидаемый результат:
 
-`
+```
 /home/engineer/.local/share/containers/storage
-`
+```
 
 ✔ Используется rootless Podman  
 ✔ /var/lib/containers не используется  
@@ -74,63 +74,62 @@ podman info --format '{{.Store.GraphRoot}}'
 
 Удаление старого:
 
-`bash
+```bash
 distrobox rm -f dev
-`
+```
 
 Создание нового:
 
-`bash
+```bash
 distrobox create \
   --name dev \
   --image docker.io/library/archlinux:latest \
   --home /home/engineer/.local/share/distrobox/dev-home
-`
+```
 
 Список контейнеров:
 
-`bash
+```bash
 distrobox list
-`
+```
 
 ---
 
 🚀 Вход в контейнер
 
-`bash
+```bash
 distrobox enter dev
-`
+```
 
 ---
 
 ⚙️ Базовая настройка контейнера
 
-`bash
+```bash
 sudo pacman -Syu --noconfirm
 sudo pacman -S --needed --noconfirm \
   base-devel git curl wget unzip tar xdg-utils \
   python python-pip python-virtualenv \
   python-debugpy python-pytest \
   ruff black pyright
-`
+```
 
 ---
 
 ⚡ Установка yay (AUR helper)
 
-`bash
+```bash
 git clone https://aur.archlinux.org/yay.git
 cd yay
 makepkg -si
-`
+```
 
+---
 
 Оптимизация yay и сборки:
 
-Файл сборки:
-`bash
-/etc/makepkg.conf
-`
+Файл сборки `/etc/makepkg.conf`
+
 1. Оптимизация под твое железо (-march)
 
 У тебя: `-march=x86-64 -mtune=generic`. Это значит: «собирай код, который запустится на любом 64-битном процессоре за последние 15 лет».
@@ -150,14 +149,10 @@ makepkg -si
 У тебя: `-fno-omit-frame-pointer`. Это позволяет профилировщикам и отладчикам (вроде того же debugpy или perf) точнее показывать дерево вызовов.
 Вердикт: Для разработчика это полезно, оставляй.
 
-Файл yay
-`bash
-nano ~/.config/yay/config.json
-`
+Файл yay `nano ~/.config/yay/config.json`
 
 Пример:
-
-`json
+```json
 {
   "aururl": "https://aur.archlinux.org",
   "buildDir": "/tmp",
@@ -167,29 +162,29 @@ nano ~/.config/yay/config.json
   "sortby": "votes",
   "sudobin": "sudo"
 }
-`
+```
 
 ---
 
 🧩 Установка VS Code (официальный Microsoft build)
 
-`bash
+```bash
 yay -S visual-studio-code-bin
-`
+```
 
 Проверка:
 
-`bash
+```bash
 code --version
-`
+```
 
 ---
 
 🖥 Экспорт VS Code в KDE
 
-`bash
+```bash
 distrobox-export --app code
-`
+```
 
 ✔ VS Code появляется в системе как обычное приложение  
 ✔ но работает внутри контейнера  
@@ -200,52 +195,52 @@ distrobox-export --app code
 
 Создание проекта:
 
-`bash
+```bash
 mkdir -p ~/dev-projects/python-test
 cd ~/dev-projects/python-test
-`
+```
 
 Виртуальное окружение:
 
-`bash
+```bash
 python -m venv .venv
 source .venv/bin/activate
-`
+```
 
 Обновление pip:
 
-`bash
+```bash
 python -m pip install --upgrade pip
-`
+```
 
 Установка зависимостей:
 
-`bash
+```bash
 pip install debugpy pytest ruff black
-`
+```
 
 ---
 
 ⚙️ Настройка VS Code
 
-.vscode/settings.json:
+`.vscode/settings.json:`
 
-`json
+```json
 {
   "python.defaultInterpreterPath": "${workspaceFolder}/.venv/bin/python",
   "python.terminal.activateEnvironment": true,
   "python.testing.pytestEnabled": true,
   "editor.formatOnSave": true
 }
-`
+```
 
 ---
 
 🐞 Debug конфигурация
 
-.vscode/launch.json:
+`.vscode/launch.json:`
 
-`json
+```json
 {
   "version": "0.2.0",
   "configurations": [
@@ -258,7 +253,7 @@ pip install debugpy pytest ruff black
     }
   ]
 }
-`
+```
 
 ---
 
@@ -266,18 +261,18 @@ pip install debugpy pytest ruff black
 
 Создание snapshot:
 
-`bash
+```bash
 sudo btrfs subvolume snapshot \
   /home/engineer/.local/share/distrobox/dev-home \
   /home/engineer/dev-home-backup
-`
+```
 
 Откат:
 
-`bash
+```bash
 rm -rf ~/.local/share/distrobox/dev-home
 mv ~/dev-home-backup ~/.local/share/distrobox/dev-home
-`
+```
 
 ---
 
